@@ -17,10 +17,10 @@ public class SqlClient {
         }
 
     }
-//
+    // ----------------------------------------------------------------- ОБРАЩЕНИЕ В БАЗУ ДАННЫХ----------------------------------------
     synchronized static String getNickname(String login, String password) {
         String query = String.format("select nickname from users where login='%s' and password='%s'", login, password);
-        try (ResultSet set = statement.executeQuery(query)) {
+        try (ResultSet set = statement.executeQuery(query)) {                                                           // <-----------------
             if (set.next())
                 return set.getString(1);
         } catch (SQLException e) {
@@ -28,7 +28,7 @@ public class SqlClient {
         }
         return null;
     }
-
+//-------------------------------------------------------------------------------------------------------------------------------------
     synchronized static void disconnect() {
         try {
             connection.close();

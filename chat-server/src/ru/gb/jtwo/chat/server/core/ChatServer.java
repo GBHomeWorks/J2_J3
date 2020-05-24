@@ -132,7 +132,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
         }
 
     }
-
+// -----------------------------------------------------  АВТОРИЗАЦИЯ  -------------------------------
     void handleNonAuthMessage(ClientThread client, String msg) {
         String[] arr = msg.split(Library.DELIMITER);
         if (arr.length != 3 || !arr[0].equals(Library.AUTH_REQUEST)) {
@@ -141,7 +141,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
         }
         String login = arr[1];
         String password = arr[2];
-        String nickname = SqlClient.getNickname(login, password);
+        String nickname = SqlClient.getNickname(login, password);// ------------------ОБРАЩЕНИЕ К БАЗЕ ДАННЫХ
         if (nickname == null) {
             putLog("Invalid login attempt: " + login);
             client.authFail();
@@ -158,7 +158,7 @@ public class ChatServer implements ServerSocketThreadListener, SocketThreadListe
         }
         sendToAllAuthorizedClients(Library.getUserList(getUsers()));
     }
-
+//----------------------------------------------------------------------------------------------------
     private void sendToAllAuthorizedClients(String msg) {
         for (int i = 0; i < clients.size(); i++) {
             ClientThread client = (ClientThread) clients.get(i);
