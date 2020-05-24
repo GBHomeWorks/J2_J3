@@ -1,3 +1,7 @@
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+
 //package src.ru.gb.jtwo.chat.client;
 ////JavaLevel3_2.src.hw3.J2_Stream200402.chat-client.src.ru.gb.jtwo.chat.client
 //
@@ -18,7 +22,7 @@
 //import java.text.SimpleDateFormat;
 //import java.util.Arrays;
 //
-//public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, SocketThreadListener {
+public class ClientGUI extends JFrame implements ActionListener, Thread.UncaughtExceptionHandler, SocketThreadListener {
 //
 //    private static final int WIDTH = 400;
 //    private static final int HEIGHT = 300;
@@ -93,21 +97,21 @@
 //        setVisible(true);
 //    }
 //
-//    @Override
-//    public void actionPerformed(ActionEvent e) {
-//        Object src = e.getSource();
-//        if (src == cbAlwaysOnTop) {
-//            setAlwaysOnTop(cbAlwaysOnTop.isSelected());
-//        } else if (src == btnSend || src == tfMessage) {
-//            sendMessage();
-//        } else if (src == btnLogin) {
-//            connect();
-//        } else if (src == btnDisconnect) {
-//            socketThread.close();
-//        } else {
-//            throw new RuntimeException("Unknown source:" + src);
-//        }
-//    }
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        Object src = e.getSource();
+        if (src == cbAlwaysOnTop) {
+            setAlwaysOnTop(cbAlwaysOnTop.isSelected());
+        } else if (src == btnSend || src == tfMessage) {
+            sendMessage();
+        } else if (src == btnLogin) {
+            connect();
+        } else if (src == btnDisconnect) {
+            socketThread.close();
+        } else {
+            throw new RuntimeException("Unknown source:" + src);
+        }
+    }
 //
 //    private void connect() {
 //        try {
@@ -118,17 +122,24 @@
 //        }
 //    }
 //
-//    private void sendMessage() {
-//        String msg = tfMessage.getText();
-//        String username = tfLogin.getText();
-//        if ("".equals(msg)) return;
-//        tfMessage.setText(null);
-//        tfMessage.requestFocusInWindow();
-//        socketThread.sendMessage(Library.getTypeBcastClient(msg));
-//        //putLog(String.format("%s: %s", username, msg));
-//        //wrtMsgToLogFile(msg, username);
-//    }
-//
+    private void sendMessage() {        //-------------ОТПРАВКА СООБЩЕНИЯ И ЗАПИСЬ СООБЩЕНИЯ В ФАЙЛ---------------
+        String msg=tfMessage.getText();
+        String username=tfLogin.getText();
+        if("".equals(msg))  return;
+        tfMessage.setText(null);
+        tfMessage.requestFocusInWindow();
+        socketThread.sendMessage(msg);
+        String msgNewLine = msg + "\n";
+        byte[] outMsg = msgNewLine.getBytes();
+        try (OutputStream out = new BufferedOutputStream(new
+                FileOutputStream("history_" + username + ".txt", true))) { // <--------ЗАПИСЬ СООБЩЕНИЯ В ФАЙЛ-------
+            out.write(outMsg);
+
+             } catch(IOException e) {
+                   e.printStackTrace();
+        }
+    }
+
 //    private void wrtMsgToLogFile(String msg, String username) {
 //        try (FileWriter out = new FileWriter("log.txt", true)) {
 //            out.write(username + ": " + msg + System.lineSeparator());

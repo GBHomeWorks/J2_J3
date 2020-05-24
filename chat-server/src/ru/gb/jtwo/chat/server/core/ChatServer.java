@@ -10,7 +10,7 @@
 //import java.net.Socket;
 //import java.util.Vector;
 //
-//public class ChatServer implements ServerSocketThreadListener, SocketThreadListener {
+public class ChatServer implements ServerSocketThreadListener, SocketThreadListener {
 //
 //    ServerSocketThread server;
 //    ChatServerListener listener;
@@ -106,60 +106,63 @@
 //        clients.add(thread);
 //    }
 //
-//    @Override
-//    public synchronized void onReceiveString(SocketThread thread, Socket socket, String msg) {
-//        ClientThread client = (ClientThread) thread;
-//        if (client.isAuthorized()) {
-//            handleAuthMessage(client, msg);
-//        } else
-//            handleNonAuthMessage(client, msg);
-//    }
-//
-//    @Override
-//    public synchronized void onSocketException(SocketThread thread, Throwable throwable) {
-//        throwable.printStackTrace();
-//    }
-//
-//    void handleAuthMessage(ClientThread client, String msg) {
-//        String[] arr = msg.split(Library.DELIMITER);
-//        String msgType = arr[0];
-//        switch (msgType) {
-//            case Library.TYPE_BCAST_CLIENT:
-//                sendToAllAuthorizedClients(Library.getTypeBroadcast(
-//                        client.getNickname(), arr[1]));
-//                break;
-//            default:
-//                client.sendMessage(Library.getMsgFormatError(msg));
-//        }
-//
-//    }
-//// -----------------------------------------------------  АВТОРИЗАЦИЯ  -------------------------------
-//    void handleNonAuthMessage(ClientThread client, String msg) {
-//        String[] arr = msg.split(Library.DELIMITER);
-//        if (arr.length != 3 || !arr[0].equals(Library.AUTH_REQUEST)) {
-//            client.msgFormatError(msg);
-//            return;
-//        }
-//        String login = arr[1];
-//        String password = arr[2];
-//        String nickname = SqlClient.getNickname(login, password);// ------------------ОБРАЩЕНИЕ К БАЗЕ ДАННЫХ
-//        if (nickname == null) {
-//            putLog("Invalid login attempt: " + login);
-//            client.authFail();
-//            return;
-//        } else {
-//            ClientThread oldClient = findClientByNickname(nickname);
-//            client.authAccept(nickname);
-//            if (oldClient == null) {
-//                sendToAllAuthorizedClients(Library.getTypeBroadcast("Server", nickname + " connected"));
-//            } else {
-//                oldClient.reconnect();
-//                clients.remove(oldClient);
-//            }
-//        }
-//        sendToAllAuthorizedClients(Library.getUserList(getUsers()));
-//    }
-////----------------------------------------------------------------------------------------------------
+//--------------------------- КЛИЕНТСКАЯ ЧАСТЬ СЕРЕВЕРА . ОБРАБОКА СООБЩЕНИЙ ---------------------------------
+    @Override
+    public synchronized void onReceiveString(SocketThread thread, Socket socket, String msg) {
+        ClientThread client = (ClientThread) thread;
+        if (client.isAuthorized()) {
+            handleAuthMessage(client, msg);
+        } else
+            handleNonAuthMessage(client, msg);
+    }
+//---------------------------------------------------------------------------------------------
+    @Override
+    public synchronized void onSocketException(SocketThread thread, Throwable throwable) {
+        throwable.printStackTrace();
+    }
+
+    void handleAuthMessage(ClientThread client, String msg) {
+        String[] arr = msg.split(Library.DELIMITER);
+        String msgType = arr[0];
+        switch (msgType) {
+            case Library.TYPE_BCAST_CLIENT:
+                sendToAllAuthorizedClients(Library.getTypeBroadcast(
+                        client.getNickname(), arr[1]));
+                break;
+            default:
+                client.sendMessage(Library.getMsgFormatError(msg));
+        }
+
+    }
+
+// -----------------------------------------------------  АВТОРИЗАЦИЯ  -------------------------------
+    void handleNonAuthMessage(ClientThread client, String msg) {
+        String[] arr = msg.split(Library.DELIMITER);
+        if (arr.length != 3 || !arr[0].equals(Library.AUTH_REQUEST)) {
+            client.msgFormatError(msg);
+            return;
+        }
+        String login = arr[1];
+        String password = arr[2];
+        String nickname = SqlClient.getNickname(login, password);// ------------------ ИНИЦИАЛИЗАЦИЯ ОБРАЩЕНИЯ К БАЗЕ ДАННЫХ
+        if (nickname == null) {
+            putLog("Invalid login attempt: " + login);
+            client.authFail();
+            return;
+        } else {
+            ClientThread oldClient = findClientByNickname(nickname);
+            client.authAccept(nickname);
+            if (oldClient == null) {
+                sendToAllAuthorizedClients(Library.getTypeBroadcast("Server", nickname + " connected"));
+            } else {
+                oldClient.reconnect();
+                clients.remove(oldClient);
+            }
+        }
+        sendToAllAuthorizedClients(Library.getUserList(getUsers())); //+++++++++++++++++++++++++++++
+    }
+//----------------------------------------------------------------------------------------------------
+
 //    private void sendToAllAuthorizedClients(String msg) {
 //        for (int i = 0; i < clients.size(); i++) {
 //            ClientThread client = (ClientThread) clients.get(i);
